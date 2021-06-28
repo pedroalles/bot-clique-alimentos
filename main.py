@@ -65,9 +65,10 @@ def doar():
 
         driver.quit()
 
-    except:
+    except Exception as e:
 
         print("Houve algum problema. Repetindo processo.")
+        print(e)
         # driver.quit()
         doar()
 
