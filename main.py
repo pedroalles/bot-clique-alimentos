@@ -68,7 +68,7 @@ def doar():
     except:
 
         print("Houve algum problema. Repetindo processo.")
-        driver.quit()
+        # driver.quit()
         doar()
 
 schedule.every(3).seconds.do(doar)
