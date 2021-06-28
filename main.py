@@ -1,12 +1,17 @@
+#-*- coding:utf-8 -*-
 import time
 from selenium import webdriver
 import schedule
 import os
 from bs4 import BeautifulSoup
 
+cont_cidades = 0
+
 cont_empresas = 0
 
 cont_cliques = 0
+
+cont_cliques_por_cidade = 0
 
 def doar():
 
@@ -15,6 +20,10 @@ def doar():
         global cont_cliques
 
         global cont_empresas
+
+        global cont_cidades
+
+        global cont_cliques_por_cidade
 
         chrome_options = webdriver.ChromeOptions()
         chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -35,7 +44,11 @@ def doar():
 
         time.sleep(3)
 
-        driver.find_element_by_xpath("//*[@id='DoeCidades']/div/table/tbody/tr//*[text()='Porto Alegre']").click()
+        cidades = driver.find_elements_by_css_selector('[onclick*=LoadEmpresas]')
+
+        cidades[cont_cidades].click()
+
+        quant_cidades = (len(cidades))
 
         time.sleep(3)
 
@@ -47,35 +60,46 @@ def doar():
 
         time.sleep(3)
 
-        html_content = empresas[cont_empresas].get_attribute("outerHTML")
+        html_content_empresas = empresas[cont_empresas].get_attribute("outerHTML")
+        html_content_cidades = cidades[cont_cidades].get_attribute("outerHTML")
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup_empresas = BeautifulSoup(html_content_empresas, 'html.parser')
+        soup_cidades = BeautifulSoup(html_content_cidades, 'html.parser')
 
-        title = soup.img['title']
+        title_empresa = soup_empresas.img['title']
+        title_cidade = soup_cidades.text
 
         cont_cliques = cont_cliques +1
-
         cont_empresas= cont_empresas+1
+        cont_cliques_por_cidade = cont_cliques_por_cidade +1
 
-        print(f'A doaçao número {cont_cliques} foi realizada com sucesso por: {title}')
+        print(f'A doação número {cont_cliques} foi realizada com sucesso por {title_empresa} em {title_cidade}.')
 
-        if cont_cliques % quant_empresas == 0:
+        if cont_cliques_por_cidade % quant_empresas == 0:
+            
+            cont_cidades = cont_cidades +1
 
             cont_empresas = 0
-
+            cont_cliques_por_cidade = 0
+        
+        if cont_cidades == quant_cidades:
+            cont_cidades = 0
+             
+            
         driver.quit()
 
     except Exception as e:
 
-        print("Houve algum problema. Repetindo processo.")
         print(e)
+
+        print("Houve algum problema. Repetindo processo.")
+
         driver.quit()
+
         doar()
 
-schedule.every(3).seconds.do(doar)
+schedule.every(2).seconds.do(doar)
 
 while 1:
-
     schedule.run_pending()
-
     time.sleep(1) 
